@@ -46,12 +46,41 @@ def bird_animation():
     new_bird = bird_frames[bird_index]
     new_bird_rect = new_bird.get_rect(center = (100,bird_rect.centery))
     return new_bird,new_bird_rect
+
+def score_display(game_state):
+    if game_state == 'main_game':
+        score_surface = game_font.render(f'Score:{int(curr_score)}',True,(255,255,255))
+        score_rect = score_surface.get_rect(center = (288,100))
+        screen.blit(score_surface,score_rect)
+    if game_state == 'game_over':
+        score_surface = game_font.render(f'Score:{int(curr_score)}',True,(255,255,255))
+        score_rect = score_surface.get_rect(center = (288,25))
+        screen.blit(score_surface,score_rect)
+
+        high_score_surface = game_font.render(f'High Score:{int(high_score)}',True,(255,255,255))
+        high_score_rect = high_score_surface.get_rect(center = (288,625))
+        screen.blit(high_score_surface,high_score_rect)
+
+def update_score(curr,high):
+    if curr > high:
+        high = curr
+    return high
+
 clock = pygame.time.Clock()
+
 #PyGame Variables
 pygame.init()
 screen = pygame.display.set_mode((576,800))
 runGame = True
 game_active = True
+game_font = pygame.font.Font('04B_19.TTF',40)
+
+game_over_surface = pygame.transform.scale2x(pygame.image.load('assets/message.png').convert_alpha())
+game_over_rect = game_over_surface.get_rect(center = (288,324))
+
+#Score variables
+curr_score = 0
+high_score = 0
 
 #background image
 bg_surface = pygame.image.load('assets/background-day.png').convert()
@@ -65,11 +94,6 @@ floor_surface = pygame.transform.scale2x(floor_surface)
 floor_x_pos = 0
 
 #bird asset
-# bird_surface = pygame.image.load('assets/bluebird-midflap.png').convert_alpha()
-# bird_surface = pygame.transform.scale2x(bird_surface)
-#Put rect on bird asset
-# bird_rect = bird_surface.get_rect(center = (100,312))
-
 bird_downflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-downflap.png').convert_alpha())
 bird_midflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-midflap.png').convert_alpha())
 bird_upflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-upflap.png').convert_alpha())
@@ -111,6 +135,7 @@ while runGame:
                 game_active = True
                 pipe_list.clear()
                 bird_rect.center=(100,312)
+                curr_score = 0
         if event.type == SPAWNPIPE:
             pipe_list.extend(create_pipe())
         if event.type == BIRDFLAP:
@@ -125,8 +150,6 @@ while runGame:
     
     if game_active:
         #Blit is the method to display imagages on screen
-        
-
         bird_movement += gravity
         rotated_bird = rotate_bird(bird_surface)
         bird_rect.centery += bird_movement
@@ -139,6 +162,12 @@ while runGame:
         pipe_list = move_pipes(pipe_list)
         draw_pipes(pipe_list)
 
+        curr_score += 0.01
+        score_display('main_game')
+    else:
+        screen.blit(game_over_surface,game_over_rect)
+        high_score = update_score(curr_score,high_score)
+        score_display('game_over')
     #Floor
     floor_x_pos-=2
     draw_floor()
